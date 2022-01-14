@@ -1,0 +1,16 @@
+{
+  "name": "geniem-local-pa11y-runner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pa11y": "^6.1.1",
+    "pa11y-reporter-cli": "^2.0.0",
+    "xml2js": "^0.4.23"
+  }
+}
