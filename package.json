@@ -11,6 +11,7 @@
   "dependencies": {
     "pa11y": "^6.1.1",
     "pa11y-reporter-cli": "^2.0.0",
+    "pa11y-reporter-html": "^2.0.0",
     "xml2js": "^0.4.23"
   }
 }

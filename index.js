@@ -1,9 +1,13 @@
 const pa11y = require("pa11y");
 const cli = require("pa11y-reporter-cli");
+const htmlReporter = require("pa11y-reporter-html");
 const https = require("https");
 const fetch = require("node-fetch");
 const xml2js = require("xml2js");
 const puppeteer = require("puppeteer");
+const fs = require("fs");
+const args = process.argv;
+const reportType = args[2];
 
 const sitemaps = ["https://asiakas.test/sitemap.xml"];
 
@@ -25,7 +29,11 @@ async function getUrls(url) {
     const data = await parser.parseStringPromise(content);
 
     return new Promise((resolve) => {
-        resolve(data.urlset.url.length ? data.urlset.url.map((link) => link.loc[0]): []);
+        resolve(
+            data.urlset.url.length
+                ? data.urlset.url.map((link) => link.loc[0])
+                : []
+        );
     });
 }
 
@@ -44,7 +52,7 @@ async function runPa11y(urls) {
             log: {
                 debug: console.log,
                 error: console.error,
-                info: console.log
+                info: console.log,
             },
             runners: ["axe", "htmlcs"],
         };
@@ -61,11 +69,16 @@ async function runPa11y(urls) {
                 log: options.log,
                 runners: options.runners,
             });
-        }
 
-        results.forEach((result) => {
-            console.log(cli.results(result));
-        });
+            if (reportType === "html") {
+                const htmlResults = await htmlReporter.results(results[i]);
+                const fileName = getFileName(urls[i]);
+
+                fs.writeFileSync(`./output/${fileName}`, htmlResults);
+            } else {
+                console.log(cli.results(results[i]));
+            }
+        }
 
         for (const page of pages) {
             await page.close();
@@ -75,6 +88,27 @@ async function runPa11y(urls) {
     } catch (error) {
         console.error(error.message);
     }
+}
+
+/**
+ * Get file name
+ *
+ * @param {string} url
+ * @return {string}
+ */
+function getFileName(url) {
+    let fileName = url
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+    const dt = new Date();
+
+    return `${dt.getFullYear()}-${
+        dt.getMonth() + 1
+    }-${dt.getDate()}-${fileName}.html`;
 }
 
 sitemaps.forEach(async (url) => {
