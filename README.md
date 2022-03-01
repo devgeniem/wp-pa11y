@@ -4,6 +4,10 @@
 
 `npm install`
 
+## Asetukset
+
+Luo `sitemaps.txt` ja lisää sinne sitemap.xml osoitteita yksi per rivi. Esimerkki `sitemaps.txt.example`
+
 ## Ajaminen
 
 `make html`

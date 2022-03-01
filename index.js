@@ -9,7 +9,28 @@ const fs = require("fs");
 const args = process.argv;
 const reportType = args[2];
 
-const sitemaps = ["https://asiakas.test/sitemap.xml"];
+if ( ! fs.existsSync('./sitemaps.txt')) {
+    console.error('Create sitemaps.txt');
+    return;
+}
+
+const sitemaps = fs.readFileSync('./sitemaps.txt', 'utf8').split("\n").filter((a) => a.length) ;
+
+if( sitemaps.length === 0) {
+    console.error('Empty sitemaps.txt');
+    return;
+}
+else {
+    console.log('Running Pa11y for ', sitemaps.join(', '));
+
+    sitemaps.forEach(async (url) => {
+        const urlList = await getUrls(url);
+
+        if (urlList.length > 0) {
+            runPa11y(urlList);
+        }
+    });
+}
 
 /**
  * Get urls from sitemap
@@ -110,11 +131,3 @@ function getFileName(url) {
         dt.getMonth() + 1
     }-${dt.getDate()}-${fileName}.html`;
 }
-
-sitemaps.forEach(async (url) => {
-    const urlList = await getUrls(url);
-
-    if (urlList.length > 0) {
-        runPa11y(urlList);
-    }
-});
