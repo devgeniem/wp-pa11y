@@ -26,7 +26,6 @@ else {
 
     sitemaps.forEach(async (url) => {
         const folderName = (new URL(url)).hostname.replace("www.","").replace(".","");
-
         const dir = `./${outputDir}/${folderName}`;
 
         if (!fs.existsSync(dir) && reportType === "html"){
@@ -34,7 +33,6 @@ else {
         }
 
         const urlList = await getUrls(url);
-
         const urlObj = {
             folderName,
             urlList,
