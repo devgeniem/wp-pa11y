@@ -8,6 +8,7 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const args = process.argv;
 const reportType = args[2];
+const outputDir = './output';
 
 if ( ! fs.existsSync('./sitemaps.txt')) {
     console.error('Create sitemaps.txt');
@@ -24,10 +25,23 @@ else {
     console.log('Running Pa11y for ', sitemaps.join(', '));
 
     sitemaps.forEach(async (url) => {
+        const folderName = (new URL(url)).hostname.replace("www.","").replace(".","");
+
+        const dir = `./${outputDir}/${folderName}`;
+
+        if (!fs.existsSync(dir) && reportType === "html"){
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
         const urlList = await getUrls(url);
 
-        if (urlList.length > 0) {
-            runPa11y(urlList);
+        const urlObj = {
+            folderName,
+            urlList,
+        };
+
+        if (urlObj.urlList.length > 0) {
+            runPa11y(urlObj);
         }
     });
 }
@@ -61,10 +75,10 @@ async function getUrls(url) {
 /**
  * Run Pa11y for given urls
  *
- * @param {array} urls Array of urls.
+ * @param {object} urlObj Object containing folder name and url list.
  * @return {void}
  */
-async function runPa11y(urls) {
+async function runPa11y(urlObj) {
     let browser;
     let pages = [];
 
@@ -80,11 +94,12 @@ async function runPa11y(urls) {
 
         browser = await puppeteer.launch();
         const results = [];
+        const { folderName, urlList } = urlObj;
 
-        for (let i = 0; i < urls.length; i++) {
+        for (let i = 0; i < urlList.length; i++) {
             pages.push(await browser.newPage());
 
-            results[i] = await pa11y(urls[i], {
+            results[i] = await pa11y(urlList[i], {
                 browser,
                 page: pages[i],
                 log: options.log,
@@ -93,9 +108,8 @@ async function runPa11y(urls) {
 
             if (reportType === "html") {
                 const htmlResults = await htmlReporter.results(results[i]);
-                const fileName = getFileName(urls[i]);
-
-                fs.writeFileSync(`./output/${fileName}`, htmlResults);
+                const fileName = getFileName(urlList[i]);
+                fs.writeFileSync(`./${outputDir}/${folderName}/${fileName}`, htmlResults);
             } else {
                 console.log(cli.results(results[i]));
             }
@@ -123,7 +137,8 @@ function getFileName(url) {
         .trim()
         .replace(/[^\w\s-]/g, "")
         .replace(/[\s_-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+        .replace(/^-+|-+$/g, "")
+        .replace("httpswww", "");
 
     const dt = new Date();
 
