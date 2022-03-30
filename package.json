@@ -6,7 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": {
+    "name": "wp-pa11y Contributors",
+    "url": "https://github.com/devgeniem/wp-pa11y/graphs/contributors"
+  },
   "license": "MIT",
   "dependencies": {
     "commander": "^9.1.0",
