@@ -1,5 +1,5 @@
 cli:
-	node index.js cli
+	node wp-pa11y.js
 
 html:
-	node index.js html
+	node wp-pa11y.js -o html

@@ -1,5 +1,5 @@
 node_modules
 .DS_Store
 .idea
-output/*.html
+output/**/*.html
 sitemaps.txt
