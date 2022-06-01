@@ -1,0 +1,205 @@
+#!/usr/bin/env node
+
+const cli = require( "pa11y-reporter-cli" );
+const fetch = require( "node-fetch" );
+const fs = require( "fs" );
+const htmlReporter = require( "pa11y-reporter-html" );
+const https = require( "https" );
+const pa11y = require( "pa11y" );
+const path = require( "path" );
+const puppeteer = require( "puppeteer" );
+const xml2js = require( "xml2js" );
+const { program, Option } = require( "commander" );
+
+// Configuration.
+const outputDir = path.resolve( __dirname, "output" );
+const pkg = require( "./package.json" );
+const name = "wp-pa11y";
+const version = pkg.version || "0.0.0";
+
+const { cosmiconfigSync, defaultLoaders } = require( "cosmiconfig" );
+
+const cosmicConfig = cosmiconfigSync( name, {
+    searchPlaces: [
+        "sitemaps.txt",
+        "package.json"
+    ],
+    loaders: {
+        ".txt": defaultLoaders[ "noExt" ]
+    }
+} );
+const searchedFor = cosmicConfig.search();
+
+if ( searchedFor === null || searchedFor.isEmpty ) {
+    console.error( "Could not find configuration. Please check docs and try again." );
+    process.exit( 1 );
+}
+
+const config = cosmicConfig.load( searchedFor.filepath );
+
+program
+    .version( version, "-v, --version", "output the current version" )
+    .addOption(
+        new Option( "-o, --output <type>", "output type" )
+            .choices( [ "console", "html" ] )
+            .default( "console" )
+            .env( "WP_PA11Y_OUTPUT" )
+    )
+    .option( "-s, --sitemaps [sitemap urls...]", "specify one or more sitemaps for manual runs" );
+
+program.parse();
+
+const opts = program.opts();
+
+const reportType = opts.output || 'console';
+let sitemaps = config.config;
+
+if ( sitemaps instanceof String || ! ( sitemaps instanceof Array ) ) {
+    sitemaps = sitemaps.split( " " );
+}
+
+if ( opts.sitemap && opts.sitemaps.length ) {
+    sitemaps = sitemaps.concat( opts.sitemaps || [] )
+        .filter( ( a ) => a.length );
+}
+
+sitemaps = sitemaps
+    .map( ( a ) => a.toString().trim() )
+    .filter( ( a ) => a.length );
+
+// Make sure only unique values are present.
+sitemaps = Array.from( new Set( sitemaps ) );
+
+if ( sitemaps.length === 0 ) {
+    console.error( "No sitemaps to process. Exiting." );
+    process.exit( 0 );
+}
+
+console.log( "Running Pa11y for: ", sitemaps.join( ", " ) );
+
+sitemaps.forEach( async ( url ) => {
+    const folderName = ( new URL( url ) ).hostname
+        .replace( "www.", "" )
+        .replace( ".", "" );
+
+    const dir = path.resolve(outputDir, folderName);
+
+    if ( ! fs.existsSync( dir ) && reportType === "html" ) {
+        fs.mkdirSync( dir, { recursive: true } );
+    }
+
+    const urlList = await getUrls( url );
+    const urlObj = {
+        folderName,
+        urlList
+    };
+
+    if ( urlObj.urlList.length > 0 ) {
+        runPa11y( urlObj );
+    }
+} );
+
+/**
+ * Get urls from sitemap
+ *
+ * @param {string} url
+ * @returns {Promise}
+ */
+async function getUrls( url ) {
+    // Bypass self-signed cert
+    const httpsAgent = new https.Agent( {
+        rejectUnauthorized: false
+    } );
+
+    const response = await fetch( url, { method: "GET", agent: httpsAgent } );
+    const content = await response.text();
+    const parser = new xml2js.Parser();
+    const data = await parser.parseStringPromise( content );
+
+    return new Promise( ( resolve ) => {
+        resolve(
+            data.urlset.url.length
+                ? data.urlset.url.map( ( link ) => link.loc[ 0 ] )
+                : []
+        );
+    } );
+}
+
+/**
+ * Run Pa11y for given urls
+ *
+ * @param {object} urlObj Object containing folder name and url list.
+ * @return {void}
+ */
+async function runPa11y( urlObj ) {
+    let browser;
+    let pages = [];
+
+    try {
+        const options = {
+            log: {
+                debug: console.log,
+                error: console.error,
+                info: console.log
+            },
+            runners: [ "axe", "htmlcs" ]
+        };
+
+        browser = await puppeteer.launch();
+        const results = [];
+        const { folderName, urlList } = urlObj;
+
+        for ( let i = 0; i < urlList.length; i++ ) {
+            pages.push( await browser.newPage() );
+
+            results[ i ] = await pa11y( urlList[ i ], {
+                browser,
+                page: pages[ i ],
+                log: options.log,
+                runners: options.runners
+            } );
+
+            if ( reportType === "html" ) {
+                const htmlResults = await htmlReporter.results( results[ i ] );
+                const fileName = getFileName( urlList[ i ] );
+
+                const htmlOutput = path.resolve(outputDir, folderName, fileName);
+
+                fs.writeFileSync( htmlOutput, htmlResults );
+            }
+            else {
+                console.log( cli.results( results[ i ] ) );
+            }
+        }
+
+        for ( const page of pages ) {
+            await page.close();
+        }
+
+        await browser.close();
+    } catch ( error ) {
+        console.error( error.message );
+    }
+}
+
+/**
+ * Get file name
+ *
+ * @param {string} url
+ * @return {string}
+ */
+function getFileName( url ) {
+    let fileName = url
+        .toLowerCase()
+        .trim()
+        .replace( /[^\w\s-]/g, "" )
+        .replace( /[\s_-]+/g, "-" )
+        .replace( /^-+|-+$/g, "" )
+        .replace( "httpswww", "" );
+
+    const dt = new Date();
+
+    return `${ dt.getFullYear() }-${
+        dt.getMonth() + 1
+    }-${ dt.getDate() }-${ fileName }.html`;
+}
