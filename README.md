@@ -21,26 +21,11 @@ Run [pa11y](https://github.com/pa11y/pa11y) to each page on your sitemaps.
 
 ## Configuration
 
-`wp-pa11y` reads sitemaps from one of two locations.
-
-You can use either `sitemaps.txt` file or `wp-pa11y` key in the project `package.json` file (examples below).
-
-`wp-pa11y` prefers `sitemaps.txt` to `package.json`, so use one of them to avoid confusion.
-
-### Using `sitemaps.txt`
-
-Create file `sitemaps.txt` and add each sitemap.xml to its own line.
-
-```
-https://example.com/sitemap.xml
-https://subdomain.example.com/sitemap.xml
-```
-
-If you are still confused, see `sitemaps.txt.example`.
+`wp-pa11y` reads sitemaps from `wp-pa11y` key in the project `package.json` file (examples below).
 
 ### Using `package.json`
 
-Add `wp-pa11y` array to your project root `package.json` and add sitemaps as array items.
+Add `wp-pa11y` array to your project root `package.json` and add sitemaps as objects.
 
 ```json
 {
@@ -49,8 +34,21 @@ Add `wp-pa11y` array to your project root `package.json` and add sitemaps as arr
   "dependencies": {},
   "devDependencies": {},
   "wp-pa11y": [
-    "https://example.com/sitemap.xml",
-    "https://subdomain.example.com/sitemap.xml"
+    {
+      "url": "https://example.com/sitemap.xml",
+      "config: {
+       "hideElements": "#CybotCookiebotDialog"
+      }
+    },
+    {
+      "url": "https://subdomain.example.com/sitemap.xml",
+      "config: {
+       "hideElements": "#CybotCookiebotDialog",
+       "ignore": [
+          "WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.A.NoContent"
+        ]
+      }
+    }
   ]
 }
 ```

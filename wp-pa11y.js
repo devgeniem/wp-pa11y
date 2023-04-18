@@ -17,17 +17,14 @@ const pkg = require( "./package.json" );
 const name = "wp-pa11y";
 const version = pkg.version || "0.0.0";
 
-const { cosmiconfigSync, defaultLoaders } = require( "cosmiconfig" );
+const { cosmiconfigSync } = require( "cosmiconfig" );
 
 const cosmicConfig = cosmiconfigSync( name, {
     searchPlaces: [
-        "sitemaps.txt",
         "package.json"
-    ],
-    loaders: {
-        ".txt": defaultLoaders[ "noExt" ]
-    }
+    ]
 } );
+
 const searchedFor = cosmicConfig.search();
 
 if ( searchedFor === null || searchedFor.isEmpty ) {
@@ -52,33 +49,15 @@ program.parse();
 const opts = program.opts();
 
 const reportType = opts.output || 'console';
-let sitemaps = config.config;
+let configs = config.config;
 
-if ( sitemaps instanceof String || ! ( sitemaps instanceof Array ) ) {
-    sitemaps = sitemaps.split( " " );
-}
-
-if ( opts.sitemap && opts.sitemaps.length ) {
-    sitemaps = sitemaps.concat( opts.sitemaps || [] )
-        .filter( ( a ) => a.length );
-}
-
-sitemaps = sitemaps
-    .map( ( a ) => a.toString().trim() )
-    .filter( ( a ) => a.length );
-
-// Make sure only unique values are present.
-sitemaps = Array.from( new Set( sitemaps ) );
-
-if ( sitemaps.length === 0 ) {
+if ( configs.length === 0 ) {
     console.error( "No sitemaps to process. Exiting." );
     process.exit( 0 );
 }
 
-console.log( "Running Pa11y for: ", sitemaps.join( ", " ) );
-
-sitemaps.forEach( async ( url ) => {
-    const folderName = ( new URL( url ) ).hostname
+configs.forEach( async ( item ) => {
+    const folderName = ( new URL( item.url ) ).hostname
         .replace( "www.", "" )
         .replace( ".", "" );
 
@@ -88,14 +67,14 @@ sitemaps.forEach( async ( url ) => {
         fs.mkdirSync( dir, { recursive: true } );
     }
 
-    const urlList = await getUrls( url );
+    const urlList = await getUrls( item.url );
     const urlObj = {
         folderName,
         urlList
     };
 
     if ( urlObj.urlList.length > 0 ) {
-        runPa11y( urlObj );
+        runPa11y( urlObj, item.config );
     }
 } );
 
@@ -129,9 +108,10 @@ async function getUrls( url ) {
  * Run Pa11y for given urls
  *
  * @param {object} urlObj Object containing folder name and url list.
+ * @param {object} config Object containing pa11y config.
  * @return {void}
  */
-async function runPa11y( urlObj ) {
+async function runPa11y( urlObj, config ) {
     let browser;
     let pages = [];
 
@@ -153,6 +133,7 @@ async function runPa11y( urlObj ) {
             pages.push( await browser.newPage() );
 
             results[ i ] = await pa11y( urlList[ i ], {
+                ...config,
                 browser,
                 page: pages[ i ],
                 log: options.log,
