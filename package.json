@@ -23,13 +23,5 @@
   },
   "bin": {
     "wp-pa11y": "wp-pa11y.js"
-  },
-  "wp-pa11y": [
-    {
-      "url": "https://www.kuopio.fi/sitemap.xml",
-      "config": {
-       "hideElements": "#CybotCookiebotDialog"
-      }
-    }
-  ]
+  }
 }
