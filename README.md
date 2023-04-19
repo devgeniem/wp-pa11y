@@ -6,11 +6,11 @@ Run [pa11y](https://github.com/pa11y/pa11y) to each page on your sitemaps.
 
 ### As a global npm package
 
-*TBA*
+_TBA_
 
 ### As a project npm dependency
 
-*TBA*
+_TBA_
 
 ### `git` Clone
 
@@ -29,27 +29,27 @@ Add `wp-pa11y` array to your project root `package.json` and add sitemaps as obj
 
 ```json
 {
-  "name": "your-project",
-  "version": "x.y.z",
-  "dependencies": {},
-  "devDependencies": {},
-  "wp-pa11y": [
-    {
-      "url": "https://example.com/sitemap.xml",
-      "config": {
-       "hideElements": "#CybotCookiebotDialog"
-      }
-    },
-    {
-      "url": "https://subdomain.example.com/sitemap.xml",
-      "config": {
-       "hideElements": "#CybotCookiebotDialog",
-       "ignore": [
-          "WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.A.NoContent"
-        ]
-      }
-    }
-  ]
+    "name": "your-project",
+    "version": "x.y.z",
+    "dependencies": {},
+    "devDependencies": {},
+    "wp-pa11y": [
+        {
+            "url": "https://example.com/sitemap.xml",
+            "config": {
+                "hideElements": "#CybotCookiebotDialog"
+            }
+        },
+        {
+            "url": "https://subdomain.example.com/sitemap.xml",
+            "config": {
+                "hideElements": "#CybotCookiebotDialog",
+                "ignore": [
+                    "WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.A.NoContent"
+                ]
+            }
+        }
+    ]
 }
 ```
 
@@ -66,7 +66,7 @@ To see all available options and arguments run `wp-pa11y --help`.
 ### From git clone (using `make`)
 
 | command     | Description                                            |
-|-------------|--------------------------------------------------------|
+| ----------- | ------------------------------------------------------ |
 | `make html` | Generates HTML reports to `./output/{domain}/` folder. |
 | `make cli`  | Outputs reports to cli.                                |
 
