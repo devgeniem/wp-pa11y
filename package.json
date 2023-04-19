@@ -1,27 +1,31 @@
 {
-  "name": "wp-pa11y",
-  "version": "1.0.0",
-  "description": "",
-  "main": "wp-pa11y.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": {
-    "name": "wp-pa11y Contributors",
-    "url": "https://github.com/devgeniem/wp-pa11y/graphs/contributors"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "commander": "^9.1.0",
-    "cosmiconfig": "^7.0.1",
-    "node-fetch": "^2.6.7",
-    "pa11y": "^6.1.1",
-    "pa11y-reporter-cli": "^2.0.0",
-    "pa11y-reporter-html": "^2.0.0",
-    "puppeteer": "^13.5.1",
-    "xml2js": "^0.4.23"
-  },
-  "bin": {
-    "wp-pa11y": "wp-pa11y.js"
-  }
+    "name": "wp-pa11y",
+    "version": "1.0.0",
+    "description": "",
+    "main": "wp-pa11y.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "format": "prettier --write '*.js'"
+    },
+    "author": {
+        "name": "wp-pa11y Contributors",
+        "url": "https://github.com/devgeniem/wp-pa11y/graphs/contributors"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "commander": "^9.1.0",
+        "cosmiconfig": "^7.0.1",
+        "node-fetch": "^2.6.7",
+        "pa11y": "^6.1.1",
+        "pa11y-reporter-cli": "^2.0.0",
+        "pa11y-reporter-html": "^2.0.0",
+        "puppeteer": "^13.5.1",
+        "xml2js": "^0.5.0"
+    },
+    "bin": {
+        "wp-pa11y": "wp-pa11y.js"
+    },
+    "devDependencies": {
+        "prettier": "2.8.7"
+    }
 }
