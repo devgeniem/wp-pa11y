@@ -19,9 +19,17 @@
     "pa11y-reporter-cli": "^2.0.0",
     "pa11y-reporter-html": "^2.0.0",
     "puppeteer": "^13.5.1",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.5.0"
   },
   "bin": {
     "wp-pa11y": "wp-pa11y.js"
-  }
+  },
+  "wp-pa11y": [
+    {
+      "url": "https://www.kuopio.fi/sitemap.xml",
+      "config": {
+       "hideElements": "#CybotCookiebotDialog"
+      }
+    }
+  ]
 }

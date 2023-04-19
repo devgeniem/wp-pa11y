@@ -36,13 +36,13 @@ Add `wp-pa11y` array to your project root `package.json` and add sitemaps as obj
   "wp-pa11y": [
     {
       "url": "https://example.com/sitemap.xml",
-      "config: {
+      "config": {
        "hideElements": "#CybotCookiebotDialog"
       }
     },
     {
       "url": "https://subdomain.example.com/sitemap.xml",
-      "config: {
+      "config": {
        "hideElements": "#CybotCookiebotDialog",
        "ignore": [
           "WCAG2AA.Principle4.Guideline4_1.4_1_2.H91.A.NoContent"
