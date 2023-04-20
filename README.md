@@ -16,7 +16,7 @@ _TBA_
 
 1. Clone the repository to your chosen location (choose wisely, this will be the folder you will be running `wp-pa11y` from)
 2. Run `npm install` inside the folder
-3. Set up your `sitemaps.txt` (see section "Configuration")
+3. Set up your sitemaps (see section "Configuration")
 4. Run the app (see section "Running the app")
 
 ## Configuration
