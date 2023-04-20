@@ -8,7 +8,7 @@ const https = require("https");
 const pa11y = require("pa11y");
 const path = require("path");
 const puppeteer = require("puppeteer");
-const xml2js = require("xml2js");
+const { XMLParser } = require("fast-xml-parser");
 const { program, Option } = require("commander");
 
 // Configuration.
@@ -76,7 +76,7 @@ configs.forEach(async (item) => {
         urlList,
     };
 
-    if (urlObj.urlList.length > 0) {
+    if (urlObj.urlList?.length > 0) {
         runPa11y(urlObj, item.config);
     }
 });
@@ -95,16 +95,12 @@ async function getUrls(url) {
 
     const response = await fetch(url, { method: "GET", agent: httpsAgent });
     const content = await response.text();
-    const parser = new xml2js.Parser();
-    const data = await parser.parseStringPromise(content);
+    const parser = new XMLParser();
+    const data = parser.parse(content);
 
-    return new Promise((resolve) => {
-        resolve(
-            data.urlset.url.length
-                ? data.urlset.url.map((link) => link.loc[0])
-                : []
-        );
-    });
+    return data.urlset.url.length
+        ? data.urlset.url.map((link) => link.loc)
+        : [];
 }
 
 /**
