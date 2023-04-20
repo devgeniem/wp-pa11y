@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
-const cli = require("pa11y-reporter-cli");
 const fetch = require("node-fetch");
 const fs = require("fs");
-const htmlReporter = require("pa11y-reporter-html");
 const https = require("https");
 const pa11y = require("pa11y");
+const htmlReporter = require('pa11y/lib/reporters/html');
 const path = require("path");
 const puppeteer = require("puppeteer");
 const { XMLParser } = require("fast-xml-parser");
@@ -41,10 +40,6 @@ program
             .choices(["console", "html"])
             .default("console")
             .env("WP_PA11Y_OUTPUT")
-    )
-    .option(
-        "-s, --sitemaps [sitemap urls...]",
-        "specify one or more sitemaps for manual runs"
     );
 
 program.parse();
@@ -151,7 +146,7 @@ async function runPa11y(urlObj, config) {
 
                 fs.writeFileSync(htmlOutput, htmlResults);
             } else {
-                console.log(cli.results(results[i]));
+                console.log(results[i]);
             }
         }
 
