@@ -5,6 +5,7 @@ const fs = require("fs");
 const https = require("https");
 const pa11y = require("pa11y");
 const htmlReporter = require('pa11y/lib/reporters/html');
+const cliReporter = require('pa11y/lib/reporters/cli');
 const path = require("path");
 const puppeteer = require("puppeteer");
 const { XMLParser } = require("fast-xml-parser");
@@ -134,19 +135,21 @@ async function runPa11y(urlObj, config) {
                 runners: options.runners,
             });
 
-            if (reportType === "html") {
-                const htmlResults = await htmlReporter.results(results[i]);
-                const fileName = getFileName(urlList[i]);
+            if (results[i].issues.length > 0) {
+                if (reportType === "html") {
+                    const htmlResults = await htmlReporter.results(results[i]);
+                    const fileName = getFileName(urlList[i]);
 
-                const htmlOutput = path.resolve(
-                    outputDir,
-                    folderName,
-                    fileName
-                );
+                    const htmlOutput = path.resolve(
+                        outputDir,
+                        folderName,
+                        fileName
+                    );
 
-                fs.writeFileSync(htmlOutput, htmlResults);
-            } else {
-                console.log(results[i]);
+                    fs.writeFileSync(htmlOutput, htmlResults);
+                } else {
+                    console.log(cliReporter.results(results[i]));
+                }
             }
         }
 
