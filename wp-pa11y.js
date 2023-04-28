@@ -4,8 +4,8 @@ const fetch = require("node-fetch");
 const fs = require("fs");
 const https = require("https");
 const pa11y = require("pa11y");
-const htmlReporter = require('pa11y/lib/reporters/html');
-const cliReporter = require('pa11y/lib/reporters/cli');
+const htmlReporter = require("pa11y/lib/reporters/html");
+const cliReporter = require("pa11y/lib/reporters/cli");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const { XMLParser } = require("fast-xml-parser");
@@ -122,6 +122,7 @@ async function runPa11y(urlObj, config) {
 
         browser = await puppeteer.launch();
         const results = [];
+        const issueHashes = [];
         const { folderName, urlList } = urlObj;
 
         for (let i = 0; i < urlList.length; i++) {
@@ -136,6 +137,16 @@ async function runPa11y(urlObj, config) {
             });
 
             if (results[i].issues.length > 0) {
+                // Report fully unique issues only.
+                const issues = [];
+                results[i].issues.forEach((issue) => {
+                    const issueHash = `${issue.runner}/${issue.code}/${issue.selector}`;
+                    if (!issueHashes.includes(issueHash)) {
+                        issueHashes.push(issueHash);
+                        issues.push(issue);
+                    }
+                });
+                results[i].issues = issues;
                 if (reportType === "html") {
                     const htmlResults = await htmlReporter.results(results[i]);
                     const fileName = getFileName(urlList[i]);
