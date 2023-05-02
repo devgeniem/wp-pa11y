@@ -65,10 +65,10 @@ To see all available options and arguments run `wp-pa11y --help`.
 
 ### From git clone (using `make`)
 
-| command     | Description                                            |
-| ----------- | ------------------------------------------------------ |
-| `make html` | Generates HTML reports to `./output/{domain}/` folder. |
-| `make cli`  | Outputs reports to cli.                                |
+| command     | Description                                              |
+| ----------- | -------------------------------------------------------- |
+| `make html` | Generates HTML reports to `./wp-pa11y/{domain}/` folder. |
+| `make cli`  | Outputs reports to cli.                                  |
 
 ## Contributors
 

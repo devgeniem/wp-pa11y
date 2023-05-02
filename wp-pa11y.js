@@ -4,15 +4,14 @@ const fetch = require("node-fetch");
 const fs = require("fs");
 const https = require("https");
 const pa11y = require("pa11y");
-const htmlReporter = require('pa11y/lib/reporters/html');
-const cliReporter = require('pa11y/lib/reporters/cli');
+const htmlReporter = require("pa11y/lib/reporters/html");
+const cliReporter = require("pa11y/lib/reporters/cli");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const { XMLParser } = require("fast-xml-parser");
 const { program, Option } = require("commander");
 
 // Configuration.
-const outputDir = path.resolve(__dirname, "output");
 const pkg = require("./package.json");
 const name = "wp-pa11y";
 const version = pkg.version || "0.0.0";
@@ -30,6 +29,13 @@ if (searchedFor === null || searchedFor.isEmpty) {
         "Could not find configuration. Please check docs and try again."
     );
     process.exit(1);
+}
+
+// Create base folder for reports to same path as config file.
+const configDir = path.dirname(searchedFor.filepath);
+const outputDir = path.resolve(configDir, `.${name}`);
+if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir);
 }
 
 const config = cosmicConfig.load(searchedFor.filepath);
