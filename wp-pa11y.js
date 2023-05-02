@@ -124,6 +124,9 @@ async function runPa11y(urlObj, config) {
         const results = [];
         const issueHashes = [];
         const { folderName, urlList } = urlObj;
+        const date = getTimestamp();
+        const summaryFileName = `${date}-${folderName}-summary.html`;
+        let summaryResults = {};
 
         for (let i = 0; i < urlList.length; i++) {
             pages.push(await browser.newPage());
@@ -136,32 +139,56 @@ async function runPa11y(urlObj, config) {
                 runners: options.runners,
             });
 
+            if (i === 0) {
+                summaryResults = results[i];
+                summaryResults.issues = [];
+            }
+
             if (results[i].issues.length > 0) {
-                // Report fully unique issues only.
-                const issues = [];
+                // Push only fully unique issues to summary results.
                 results[i].issues.forEach((issue) => {
                     const issueHash = `${issue.runner}/${issue.code}/${issue.selector}`;
                     if (!issueHashes.includes(issueHash)) {
                         issueHashes.push(issueHash);
-                        issues.push(issue);
+                        summaryResults.issues.push(issue);
                     }
                 });
-                results[i].issues = issues;
                 if (reportType === "html") {
-                    const htmlResults = await htmlReporter.results(results[i]);
-                    const fileName = getFileName(urlList[i]);
+                    // Write both page-specific and summary results to HTML files.
+                    // This allows providing a summary even if the execution is stopped.
+                    const resultObjects = [
+                        {
+                            fileName: summaryFileName,
+                            results: summaryResults,
+                        },
+                        {
+                            fileName: getFileName(urlList[i]),
+                            results: results[i],
+                        },
+                    ];
+                    for (const resultObject of resultObjects) {
+                        const htmlResults = await htmlReporter.results(
+                            resultObject.results
+                        );
 
-                    const htmlOutput = path.resolve(
-                        outputDir,
-                        folderName,
-                        fileName
-                    );
+                        const htmlOutput = path.resolve(
+                            outputDir,
+                            folderName,
+                            resultObject.fileName
+                        );
 
-                    fs.writeFileSync(htmlOutput, htmlResults);
+                        fs.writeFileSync(htmlOutput, htmlResults);
+                    }
                 } else {
                     console.log(cliReporter.results(results[i]));
                 }
             }
+        }
+
+        if (reportType === "console") {
+            // Write summary object to CLI.
+            console.log("Printing summary results of all issues...");
+            console.log(cliReporter.results(baseObject));
         }
 
         for (const page of pages) {
@@ -188,9 +215,16 @@ function getFileName(url) {
         .replace(/^-+|-+$/g, "")
         .replace("httpswww", "");
 
-    const dt = new Date();
+    const date = getTimestamp();
 
-    return `${dt.getFullYear()}-${
-        dt.getMonth() + 1
-    }-${dt.getDate()}-${fileName}.html`;
+    return `${date}-${fileName}.html`;
+}
+
+/**
+ * Get current timestamp as a string for file names.
+ * @return {string}
+ */
+function getTimestamp() {
+    const dt = new Date();
+    return `${dt.getFullYear()}-${dt.getMonth() + 1}-${dt.getDate()}`;
 }
