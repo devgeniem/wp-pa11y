@@ -3,6 +3,7 @@
 const fetch = require("node-fetch");
 const fs = require("fs");
 const https = require("https");
+const http = require("http");
 const pa11y = require("pa11y");
 const htmlReporter = require("pa11y/lib/reporters/html");
 const cliReporter = require("pa11y/lib/reporters/cli");
@@ -90,12 +91,26 @@ configs.forEach(async (item) => {
  * @returns {Promise}
  */
 async function getUrls(url) {
-    // Bypass self-signed cert
+
+    // Bypass self-signed cert.
     const httpsAgent = new https.Agent({
         rejectUnauthorized: false,
     });
 
-    const response = await fetch(url, { method: "GET", agent: httpsAgent });
+    const httpAgent = new http.Agent();
+
+    const fetchOptions = {
+        method: "GET",
+        agent(_parsedURL) {
+            // Determine agent based on protocol.
+            if (_parsedURL.protocol === 'http:') {
+                return httpAgent;
+            }
+            return httpsAgent;
+        },
+    };
+
+    const response = await fetch(url, fetchOptions);
     const content = await response.text();
     const parser = new XMLParser();
     const data = parser.parse(content);
@@ -194,7 +209,7 @@ async function runPa11y(urlObj, config) {
         if (reportType === "console") {
             // Write summary object to CLI.
             console.log("Printing summary results of all issues...");
-            console.log(cliReporter.results(baseObject));
+            console.log(cliReporter.results(summaryResults));
         }
 
         for (const page of pages) {
